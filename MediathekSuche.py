@@ -12,8 +12,6 @@ from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QGridLayout, QPushButton
                              QComboBox, QMessageBox, QApplication,  QTableWidgetItem, QCheckBox)
 import MediathekPlayer
 import Downloader
-import pandas as pd
-#import csv, codecs
 import requests
 ###################################
 btnWidth = 110
