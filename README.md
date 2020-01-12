@@ -9,7 +9,7 @@ __Voraussetzungen__
 - python3
 - PyQt5
 
-In der Datei DLOrdner kann der Download Ordner festgelegt werden (Slash am Ende!)
+In der Datei DLOrdner.txt kann der Download Ordner festgelegt werden (Slash am Ende!)
 
 Beispiel:
 
