@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QGridLayout, QPushButton
                              QComboBox, QMessageBox, QApplication,  QTableWidgetItem, QCheckBox)
 import MediathekPlayer
 import Downloader
+import time
 import requests
 ###################################
 btnWidth = 110
@@ -34,6 +35,7 @@ class MyWindow(QMainWindow):
         self.beschreibungList = []
         self.idList = []
         self.chList = []
+        self.lengthList = []
         self.results = ""
         
         self.myurl = ""
@@ -44,13 +46,14 @@ class MyWindow(QMainWindow):
         self.viewer.verticalHeader().setStretchLastSection(False)
         self.viewer.horizontalHeader().setStretchLastSection(True)
 
-        self.viewer.setColumnCount(6)
+        self.viewer.setColumnCount(7)
         self.viewer.setColumnWidth(0, 48)
         self.viewer.setColumnWidth(1, 150)
         self.viewer.setColumnWidth(2, 200)
-        self.viewer.hideColumn(3)
+        self.viewer.setColumnWidth(3, 66)
         self.viewer.hideColumn(4)
-        self.viewer.setHorizontalHeaderLabels(["Sender", "Thema", "Titel", "HD", "SD", "Beschreibung"])
+        self.viewer.hideColumn(5)
+        self.viewer.setHorizontalHeaderLabels(["Sender", "Thema", "Titel", "Länge", "HD", "SD", "Beschreibung"])
 
         self.viewer.verticalHeader().setVisible(True)
         self.viewer.horizontalHeader().setVisible(True)
@@ -135,6 +138,7 @@ class MyWindow(QMainWindow):
             self.beschreibungList = []
             self.idList = []
             self.chList = []
+            self.lengthList = []
 
             channels = [self.chCombo.currentText()]
             if channels == ["alle"]:
@@ -153,9 +157,10 @@ class MyWindow(QMainWindow):
                 self.viewer.setItem(x, 0, QTableWidgetItem(self.chList[x]))
                 self.viewer.setItem(x, 1, QTableWidgetItem(self.topicList[x]))
                 self.viewer.setItem(x, 2, QTableWidgetItem(self.titleList[x]))
-                self.viewer.setItem(x, 3, QTableWidgetItem(self.urlList[x]))
-                self.viewer.setItem(x, 4, QTableWidgetItem(self.urlKleinList[x]))
-                self.viewer.setItem(x, 5, QTableWidgetItem(self.beschreibungList[x]))
+                self.viewer.setItem(x, 4, QTableWidgetItem(self.urlList[x]))
+                self.viewer.setItem(x, 5, QTableWidgetItem(self.urlKleinList[x]))
+                self.viewer.setItem(x, 6, QTableWidgetItem(self.beschreibungList[x]))
+                self.viewer.setItem(x, 3, QTableWidgetItem(self.lengthList[x]))
             for x in range(len(self.titleList)):
                 self.viewer.resizeRowToContents(x)
         
@@ -182,6 +187,8 @@ class MyWindow(QMainWindow):
             url = response_json['result']['results'][x]['url_video']
             url_klein = response_json['result']['results'][x]['url_video_low']
             beschreibung = response_json['result']['results'][x]['description']
+            l = response_json['result']['results'][x]['duration']
+            length = time.strftime('%H:%M:%S', time.gmtime(l))
             ch = response_json['result']['results'][x]['channel']
             self.titleList.append(title)
             self.topicList.append(topic)
@@ -189,6 +196,7 @@ class MyWindow(QMainWindow):
             self.chList.append(ch)
             self.urlKleinList.append(url_klein)
             self.beschreibungList.append(beschreibung)
+            self.lengthList.append(length)
         print(count, "Beiträge gefunden")
         self.lbl.setText(f"{count} Beiträge gefunden")
         
@@ -223,7 +231,8 @@ class MyWindow(QMainWindow):
                 name = item
                 self.url = str(item)
                 print(self.url)
-            infotext = f"{self.chList[row]}: {self.topicList[row]} - {self.titleList[row]} ({self.chBox.text()})"
+            infotext = f"{self.chList[row]}: {self.topicList[row]} - {self.titleList[row]} \
+                        ({self.chBox.text()}) Dauer: {self.lengthList[row]}"
             self.msg(infotext)
             self.fname = str(self.viewer.selectedIndexes()[1].data())
 
