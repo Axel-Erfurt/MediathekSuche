@@ -9,7 +9,7 @@ Es kann die Mediathek (ARD, ZDF ...) durchsucht werden, ohne vorher die gesamte 
 __Voraussetzungen__
 
 - python3
-- [PyQt5 - siehe Ubuntuusers Wiki 🇩🇪](https://wiki.ubuntuusers.de/Baustelle/Howto/TVPlayer2/#PyQt5)
+- [PyQt5 & Gstreamer - siehe Ubuntuusers Wiki 🇩🇪](https://wiki.ubuntuusers.de/Baustelle/Howto/TVPlayer2/#PyQt5)
 
 In der Datei DLOrdner.txt kann der Download Ordner festgelegt werden (Slash am Ende!)
 
