@@ -72,7 +72,7 @@ class MyWindow(QMainWindow):
         self.layout.addWidget(self.findfield,1, 0)
         
         self.chCombo = QComboBox()
-        self.chCombo.setFixedWidth(66)
+        self.chCombo.setFixedWidth(80)
         self.chCombo.addItems(['ARD', 'ZDF', 'MDR', 'PHOENIX', 'RBB', 'BR', 'HR', 'SR', \
                                'SWR', 'NDR', 'DW', 'WDR', 'ARTE', '3SAT', 'KIKA', 'ORF'])
         self.chCombo.addItem("alle")
@@ -109,7 +109,7 @@ class MyWindow(QMainWindow):
         self.setCentralWidget(self.myWidget)
         self.setWindowIcon(QIcon(icon))
         self.setGeometry(20,20,600,450)
-        self.setWindowTitle("Mediathek")
+        self.setWindowTitle("Mediathek Suche")
         self.readSettings()
         self.msg("Ready")
         self.findfield.setFocus()
@@ -173,9 +173,10 @@ class MyWindow(QMainWindow):
             'Connection': 'keep-alive',
         }
         
-        data = {"size":"500", "sortBy":"timestamp", "sortOrder":"desc", "queries":[{"fields":["title", "topic", "description"],
-                            "query":"" + myquery + ""},{"fields":["channel"],
-                            "query":"" + channel + ""}]}
+        data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
+                "queries":[{"fields":["title", "topic", "description"],
+                "query":"" + myquery + ""},{"fields":["channel"],
+                "query":"" + channel + ""}]}
         
         response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
         response_json = response.json()
@@ -187,15 +188,37 @@ class MyWindow(QMainWindow):
             url_klein = response_json['result']['results'][x]['url_video_low']
             beschreibung = response_json['result']['results'][x]['description']
             l = response_json['result']['results'][x]['duration']
-            length = time.strftime('%H:%M:%S', time.gmtime(l))
+            if not l == "":
+                length = time.strftime('%H:%M:%S', time.gmtime(l))
+                self.lengthList.append(length)
+            else:
+                self.lengthList.append("")
             ch = response_json['result']['results'][x]['channel']
-            self.titleList.append(title)
-            self.topicList.append(topic)
-            self.urlList.append(url)
-            self.chList.append(ch)
-            self.urlKleinList.append(url_klein)
-            self.beschreibungList.append(beschreibung)
-            self.lengthList.append(length)
+            if not ch == "":
+                self.chList.append(ch)
+            else:
+                self.chList.append("")
+            if not title == "":    
+                self.titleList.append(title)
+            else:
+                self.titleList.append("")
+            if not topic == "":
+                self.topicList.append(topic)
+            else:
+                self.topicList.append("")
+            if not url == "":
+                self.urlList.append(url)
+            else:
+                self.urlList.append("")
+            if not url_klein == "":
+                self.urlKleinList.append(url_klein)
+            else:
+                self.urlKleinList.append("")
+            if not beschreibung == "":
+                self.beschreibungList.append(beschreibung)
+            else:
+                self.beschreibungList.append("")
+            
         print(count, "Beiträge gefunden")
         self.lbl.setText(f"{count} Beiträge gefunden")
         
@@ -208,7 +231,7 @@ class MyWindow(QMainWindow):
             self.downloader.setWindowTitle("Downloader")
             self.downloader.url = self.url
             item = self.viewer.selectedIndexes()[2]
-            if not item == None:
+            if not item == "":
                 filename = str(item.data())
             self.downloader.fname = filename + self.url[-4:]
             self.downloader.lbl.setText("speichern als: " + self.downloader.homepath + self.downloader.fname)
@@ -226,7 +249,7 @@ class MyWindow(QMainWindow):
                 item = self.urlList[row]
             else:
                 item = self.urlKleinList[row]
-            if not item == None:
+            if not item == "":
                 name = item
                 self.url = str(item)
                 print(self.url)
@@ -245,7 +268,7 @@ class MyWindow(QMainWindow):
             else:
                 item = self.urlKleinList[row]
                 print("play SD")
-            if not item == None:
+            if not item == "":
                 self.url = item
                 if not self.url == "":
                     print("url =", self.url)
