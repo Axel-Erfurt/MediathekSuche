@@ -2,12 +2,14 @@
 🇩🇪
 Mediathek durchsuchen, Filme abspielen, Filme herunterladen
 
+Getestet in Mint 19.3 und Ubuntu 18.04 / 19.10
+
 Es kann die Mediathek (ARD, ZDF ...) durchsucht werden, ohne vorher die gesamte Liste herunterladen zu müssen.
 
 __Voraussetzungen__
 
 - python3
-- PyQt5
+- [PyQt5 - siehe Ubuntuusers Wiki 🇩🇪](https://wiki.ubuntuusers.de/Baustelle/Howto/TVPlayer2/#PyQt5)
 
 In der Datei DLOrdner.txt kann der Download Ordner festgelegt werden (Slash am Ende!)
 
