@@ -15,9 +15,6 @@ import Downloader
 import time
 import requests
 ###################################
-btnWidth = 110
-btnHeight = 22
-
         
 class MyWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -27,6 +24,8 @@ class MyWindow(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.settings = QSettings('Axel Schneider', self.objectName())
         self.viewer = QTableWidget()
+        
+        icon = self.root + "/icon.png"
         
         self.titleList = []
         self.topicList = []
@@ -48,9 +47,9 @@ class MyWindow(QMainWindow):
 
         self.viewer.setColumnCount(7)
         self.viewer.setColumnWidth(0, 48)
-        self.viewer.setColumnWidth(1, 150)
-        self.viewer.setColumnWidth(2, 200)
-        self.viewer.setColumnWidth(3, 66)
+        self.viewer.setColumnWidth(1, 130)
+        self.viewer.setColumnWidth(2, 160)
+        self.viewer.setColumnWidth(3, 60)
         self.viewer.hideColumn(4)
         self.viewer.hideColumn(5)
         self.viewer.setHorizontalHeaderLabels(["Sender", "Thema", "Titel", "Länge", "HD", "SD", "Beschreibung"])
@@ -108,7 +107,7 @@ class MyWindow(QMainWindow):
 
         self.msg("Ready")
         self.setCentralWidget(self.myWidget)
-        self.setWindowIcon(QIcon.fromTheme("office-database"))
+        self.setWindowIcon(QIcon(icon))
         self.setGeometry(20,20,600,450)
         self.setWindowTitle("Mediathek")
         self.readSettings()
@@ -294,7 +293,11 @@ def stylesheet(self):
             selection-background-color: #1a2334;
             selection-color: #ffffff;
         }
-
+        QHeaderView
+        {background-color:#d3d7cf;
+        color: #2e3436; 
+        font: bold
+        }
 
         QHeaderView::section
         {background-color:#d3d7cf;
