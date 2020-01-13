@@ -57,6 +57,12 @@ Beispiel:
 
 SD / HD umschalten mit Button (gilt für Player und Downloader)
 
+__Wildcards__
+
+- # Thema durchsuchen
+- + Title durchsuchen
+- * Beschreibung durchsuchen
+- ohne alles durchsuchen
 
 __Shortcuts__
 
