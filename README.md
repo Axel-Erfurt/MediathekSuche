@@ -66,6 +66,8 @@ __Shortcuts (Player)__
 
 - Mausrad = Fenstergröße ändern
 - F = Fullscreen an / aus
+- S = Slider an / aus
+- SPACE = Stop
 - ↑ = lauter
 - ↓ = leiser
 - ← = 1 Minute zurück
