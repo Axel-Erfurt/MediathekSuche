@@ -62,7 +62,7 @@ __Wildcards__
 - ```+ Title durchsuchen```
 - ```* Beschreibung durchsuchen```
 
-__Shortcuts__
+__Shortcuts (Player)__
 
 - Mausrad = Fenstergröße ändern
 - F = Fullscreen an / aus
