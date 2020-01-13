@@ -1,6 +1,7 @@
 # MediathekSuche
 🇩🇪
-Mediathek durchsuchen, Filme abspielen, Filme herunterladen
+- Mediathek durchsuchen, Filme abspielen, Filme herunterladen
+- Integrierter Player & Downloader
 
 Getestet in Mint 19.3 und Ubuntu 18.04 / 19.10
 
