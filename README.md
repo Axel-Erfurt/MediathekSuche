@@ -69,10 +69,10 @@ __Shortcuts__
 - F = Fullscreen an / aus
 - ↑ = lauter
 - ↓ = leiser
-- ← = < 1 Minute zurück
-- → = > 1 Minute vor
-- SHIFT + ← = < 10 Minutes zurück
-- SHIFT + → = > 10 Minutes vor
+- ← = 1 Minute zurück
+- → = 1 Minute vor
+- SHIFT + ← = 10 Minutes zurück
+- SHIFT + → = 10 Minutes vor
 - Q = Fenster schließen
 `
 
