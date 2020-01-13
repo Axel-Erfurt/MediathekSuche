@@ -115,6 +115,10 @@ class MyWindow(QMainWindow):
         self.findfield.setFocus()
         self.player = MediathekPlayer.VideoPlayer('')
         self.player.hide()
+        help_label = QLabel("<b>Wildcards:</b> <b>+</b> Titel, <b>#</b> Thema, <b>*</b> Beschreibung")
+        help_label.setStyleSheet("font-size: 8pt; color: #1a2334;")
+        self.statusBar().addPermanentWidget(help_label)
+        self.statusBar().showMessage("Ready")
         
     def toggleQuality(self):
         if self.chBox.text() == "SD":
@@ -144,8 +148,23 @@ class MyWindow(QMainWindow):
                 channels = ["ard", "zdf", "mdr", "phoenix", "rbb", "br", "hr", "sr", "swr", "ndr",\
                             "dw", "wdr", "arte", "3sat", "kika", "orf"]
             print("suche",  self.findfield.text(), "in", ','.join(channels).upper())
-            for ch in channels:
-                r = self.makeQuery(ch, self.findfield.text())
+            
+            if self.findfield.text().startswith("*"):
+                ### nur Beschreibung
+                for ch in channels:
+                    r = self.makeQueryBeschreibung(ch, self.findfield.text()[1:])
+            elif self.findfield.text().startswith("#"):
+                ### nur Thema
+                for ch in channels:
+                    r = self.makeQueryTopic(ch, self.findfield.text()[1:])
+            elif self.findfield.text().startswith("+"):
+                ### nur Titel
+                for ch in channels:
+                    r = self.makeQueryTitle(ch, self.findfield.text()[1:])
+            else:
+                ### alle Felder
+                for ch in channels:
+                    r = self.makeQuery(ch, self.findfield.text())
 
             for b in range(len(self.titleList)):
                 self.idList.append(str(b))
@@ -175,6 +194,180 @@ class MyWindow(QMainWindow):
         
         data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
                 "queries":[{"fields":["title", "topic", "description"],
+                "query":"" + myquery + ""},{"fields":["channel"],
+                "query":"" + channel + ""}]}
+        
+        response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
+        response_json = response.json()
+        count = int(response_json['result']['queryInfo']['resultCount'])
+        for x in range(count):
+            topic = response_json['result']['results'][x]['topic']
+            title = response_json['result']['results'][x]['title']
+            url = response_json['result']['results'][x]['url_video']
+            url_klein = response_json['result']['results'][x]['url_video_low']
+            beschreibung = response_json['result']['results'][x]['description']
+            l = response_json['result']['results'][x]['duration']
+            if not l == "":
+                length = time.strftime('%H:%M:%S', time.gmtime(l))
+                self.lengthList.append(length)
+            else:
+                self.lengthList.append("")
+            ch = response_json['result']['results'][x]['channel']
+            if not ch == "":
+                self.chList.append(ch)
+            else:
+                self.chList.append("")
+            if not title == "":    
+                self.titleList.append(title)
+            else:
+                self.titleList.append("")
+            if not topic == "":
+                self.topicList.append(topic)
+            else:
+                self.topicList.append("")
+            if not url == "":
+                self.urlList.append(url)
+            else:
+                self.urlList.append("")
+            if not url_klein == "":
+                self.urlKleinList.append(url_klein)
+            else:
+                self.urlKleinList.append("")
+            if not beschreibung == "":
+                self.beschreibungList.append(beschreibung)
+            else:
+                self.beschreibungList.append("")
+            
+        print(count, "Beiträge gefunden")
+        self.lbl.setText(f"{count} Beiträge gefunden")
+        
+    def makeQueryBeschreibung(self, channel, myquery):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
+            'Accept': '*/*',
+            'Accept-Language': 'de-DE,en;q=0.5',
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Connection': 'keep-alive',
+        }
+        
+        data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
+                "queries":[{"fields":["description"],
+                "query":"" + myquery + ""},{"fields":["channel"],
+                "query":"" + channel + ""}]}
+        
+        response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
+        response_json = response.json()
+        count = int(response_json['result']['queryInfo']['resultCount'])
+        for x in range(count):
+            topic = response_json['result']['results'][x]['topic']
+            title = response_json['result']['results'][x]['title']
+            url = response_json['result']['results'][x]['url_video']
+            url_klein = response_json['result']['results'][x]['url_video_low']
+            beschreibung = response_json['result']['results'][x]['description']
+            l = response_json['result']['results'][x]['duration']
+            if not l == "":
+                length = time.strftime('%H:%M:%S', time.gmtime(l))
+                self.lengthList.append(length)
+            else:
+                self.lengthList.append("")
+            ch = response_json['result']['results'][x]['channel']
+            if not ch == "":
+                self.chList.append(ch)
+            else:
+                self.chList.append("")
+            if not title == "":    
+                self.titleList.append(title)
+            else:
+                self.titleList.append("")
+            if not topic == "":
+                self.topicList.append(topic)
+            else:
+                self.topicList.append("")
+            if not url == "":
+                self.urlList.append(url)
+            else:
+                self.urlList.append("")
+            if not url_klein == "":
+                self.urlKleinList.append(url_klein)
+            else:
+                self.urlKleinList.append("")
+            if not beschreibung == "":
+                self.beschreibungList.append(beschreibung)
+            else:
+                self.beschreibungList.append("")
+            
+        print(count, "Beiträge gefunden")
+        self.lbl.setText(f"{count} Beiträge gefunden")
+        
+    def makeQueryTopic(self, channel, myquery):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
+            'Accept': '*/*',
+            'Accept-Language': 'de-DE,en;q=0.5',
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Connection': 'keep-alive',
+        }
+        
+        data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
+                "queries":[{"fields":["topic"],
+                "query":"" + myquery + ""},{"fields":["channel"],
+                "query":"" + channel + ""}]}
+        
+        response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
+        response_json = response.json()
+        count = int(response_json['result']['queryInfo']['resultCount'])
+        for x in range(count):
+            topic = response_json['result']['results'][x]['topic']
+            title = response_json['result']['results'][x]['title']
+            url = response_json['result']['results'][x]['url_video']
+            url_klein = response_json['result']['results'][x]['url_video_low']
+            beschreibung = response_json['result']['results'][x]['description']
+            l = response_json['result']['results'][x]['duration']
+            if not l == "":
+                length = time.strftime('%H:%M:%S', time.gmtime(l))
+                self.lengthList.append(length)
+            else:
+                self.lengthList.append("")
+            ch = response_json['result']['results'][x]['channel']
+            if not ch == "":
+                self.chList.append(ch)
+            else:
+                self.chList.append("")
+            if not title == "":    
+                self.titleList.append(title)
+            else:
+                self.titleList.append("")
+            if not topic == "":
+                self.topicList.append(topic)
+            else:
+                self.topicList.append("")
+            if not url == "":
+                self.urlList.append(url)
+            else:
+                self.urlList.append("")
+            if not url_klein == "":
+                self.urlKleinList.append(url_klein)
+            else:
+                self.urlKleinList.append("")
+            if not beschreibung == "":
+                self.beschreibungList.append(beschreibung)
+            else:
+                self.beschreibungList.append("")
+            
+        print(count, "Beiträge gefunden")
+        self.lbl.setText(f"{count} Beiträge gefunden")
+        
+    def makeQueryTitle(self, channel, myquery):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
+            'Accept': '*/*',
+            'Accept-Language': 'de-DE,en;q=0.5',
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Connection': 'keep-alive',
+        }
+        
+        data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
+                "queries":[{"fields":["title"],
                 "query":"" + myquery + ""},{"fields":["channel"],
                 "query":"" + channel + ""}]}
         
