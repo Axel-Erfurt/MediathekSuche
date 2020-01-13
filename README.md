@@ -60,7 +60,7 @@ SD / HD umschalten mit Button (gilt für Player und Downloader)
 
 __Shortcuts__
 
-- Mausrad = Zoom
+- Mausrad = Fenstergröße ändern
 - F = Fullscreen an / aus
 - ↑ = lauter
 - ↓ = leiser
