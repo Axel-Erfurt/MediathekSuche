@@ -30,7 +30,7 @@ class Downloader(QWidget):
         #print("folder", folder)
         with open(folder, 'r') as f:
             t = f.read()
-            self.homepath = t
+            self.homepath = t.replace("\n", "")
             
             if t == "":
                 fd = QDir.homePath() + "/Downloads/"
