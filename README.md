@@ -1,5 +1,4 @@
-# MediathekSuche
-🇩🇪
+# MediathekSuche 🇩🇪
 - Mediathek durchsuchen, Filme abspielen, Filme herunterladen
 - Integrierter Player & Downloader
 
