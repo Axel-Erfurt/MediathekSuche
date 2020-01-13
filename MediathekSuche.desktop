@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MediathekSuche
+Comment=Fernsehen
+Icon=video
+Exec=sh -c  "python3 ~/.local/share/MediathekSuche/MediathekSuche.py"
+Categories=Video
+StartupNotify=True
+Terminal=False
+
+Name[de_DE]=MediathekSuche
