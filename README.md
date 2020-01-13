@@ -56,6 +56,19 @@ Beispiel:
 ```/home/Benutzer/Videos/```
 
 SD / HD umschalten mit Button (gilt für Player und Downloader)
+
+
+__Shortcuts__
+
+- Mausrad = Zoom
+- F = Fullscreen an / aus
+- ↑ = lauter
+- ↓ = leiser
+- ← = < 1 Minute zurück
+- → = > 1 Minute vor
+- SHIFT + ← = < 10 Minutes zurück
+- SHIFT + → = > 10 Minutes vor
+- Q = Fenster schließen
 `
 
 ![screenshot](https://github.com/Axel-Erfurt/MediathekSuche/blob/master/screenshot.png)
