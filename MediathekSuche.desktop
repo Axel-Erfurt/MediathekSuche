@@ -2,10 +2,10 @@
 Version=1.0
 Type=Application
 Name=MediathekSuche
-Comment=Fernsehen
-Icon=multimedia-video-player
+Comment=Mediathek durchsuchen
+Icon=video-television
 Exec=sh -c  "python3 ~/.local/share/MediathekSuche/MediathekSuche.py"
-Categories=Video
+Categories=Video;AudioVideo;Player
 StartupNotify=True
 Terminal=False
 
