@@ -6,7 +6,7 @@
 ### GNU General Public License v3.0 ###
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import (QFileInfo, Qt, QSettings, QSize, QFile, QModelIndex)
+from PyQt5.QtCore import (QFileInfo, Qt, QSettings, QSize, QFile, QModelIndex, QObject, QEvent)
 from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QGridLayout, QPushButton, 
                              QAbstractItemView, QAction, QLineEdit, QWidget, QLabel, 
                              QComboBox, QMessageBox, QApplication,  QTableWidgetItem, QCheckBox)
@@ -15,7 +15,7 @@ import Downloader
 import time
 import requests
 ###################################
-        
+
 class MyWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MyWindow, self).__init__()
@@ -24,6 +24,9 @@ class MyWindow(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.settings = QSettings('Axel Schneider', self.objectName())
         self.viewer = QTableWidget()
+        
+        
+        self.horizontalHeader = self.viewer.horizontalHeader()
         
         icon = self.root + "/icon.png"
         
@@ -41,9 +44,10 @@ class MyWindow(QMainWindow):
         self.fname = ""
         self.viewer.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.viewer.SelectionMode(QAbstractItemView.SingleSelection)
-
+        self.viewer.setSortingEnabled(True)
         self.viewer.verticalHeader().setStretchLastSection(False)
         self.viewer.horizontalHeader().setStretchLastSection(True)
+        #self.viewer.horizontalHeader().sectionClicked.connect(self.sortTable)
 
         self.viewer.setColumnCount(7)
         self.viewer.setColumnWidth(0, 48)
@@ -74,7 +78,7 @@ class MyWindow(QMainWindow):
         self.chCombo = QComboBox()
         self.chCombo.setFixedWidth(80)
         self.chCombo.addItems(['ARD', 'ZDF', 'MDR', 'PHOENIX', 'RBB', 'BR', 'HR', 'SR', \
-                               'SWR', 'NDR', 'DW', 'WDR', 'ARTE', '3SAT', 'KIKA', 'ORF'])
+                               'SWR', 'NDR', 'DW', 'WDR', 'ARTE', '3SAT', 'KIKA', 'ORF', 'SRF'])
         self.chCombo.addItem("alle")
         self.chCombo.setToolTip("Sender wählen")
         self.chCombo.currentIndexChanged.connect(self.myQuery)
@@ -146,7 +150,7 @@ class MyWindow(QMainWindow):
             channels = [self.chCombo.currentText()]
             if channels == ["alle"]:
                 channels = ["ard", "zdf", "mdr", "phoenix", "rbb", "br", "hr", "sr", "swr", "ndr",\
-                            "dw", "wdr", "arte", "3sat", "kika", "orf"]
+                            "dw", "wdr", "arte", "3sat", "kika", "orf", "srf"]
             print("suche",  self.findfield.text(), "in", ','.join(channels).upper())
             
             if self.findfield.text().startswith("*"):
