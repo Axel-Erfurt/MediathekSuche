@@ -44,7 +44,7 @@ class MyWindow(QMainWindow):
         self.fname = ""
         self.viewer.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.viewer.SelectionMode(QAbstractItemView.SingleSelection)
-        self.viewer.setSortingEnabled(True)
+        self.viewer.setSortingEnabled(False)
         self.viewer.verticalHeader().setStretchLastSection(False)
         self.viewer.horizontalHeader().setStretchLastSection(True)
         #self.viewer.horizontalHeader().sectionClicked.connect(self.sortTable)
