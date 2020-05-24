@@ -23,11 +23,9 @@ class Downloader(QWidget):
         layout = QVBoxLayout(self)
         hlayout = QHBoxLayout()
         
-        #self.homepath = QDir.homePath() + "/Downloads/"
         self.root = QFileInfo(__file__).absolutePath()
         self.homepath = ""
         folder = self.root + "/DLOrdner.txt"
-        #print("folder", folder)
         with open(folder, 'r') as f:
             t = f.read()
             self.homepath = t.replace("\n", "")
@@ -76,7 +74,8 @@ class Downloader(QWidget):
         the_url = self.url
         the_filesize = requests.get(the_url, stream=True).headers['Content-Length']
         the_filepath = self.homepath + self.fname
-        the_fileobj = open(the_filepath, 'wb')
+        #print(the_filepath)
+        the_fileobj = open(the_filepath, 'wb+')
         #### Create a download thread
         self.downloadThread = downloadThread(the_url, the_filesize, the_fileobj, buffer=10240)
         self.downloadThread.download_proess_signal.connect(self.set_progressbar_value)
@@ -90,7 +89,7 @@ class Downloader(QWidget):
     def set_progressbar_value(self, value):
         self.progressBar.setValue(value)
         if value == 100:
-            QMessageBox.information(self, "Tips", "Download success!")
+            QMessageBox.information(self, "Information", "Download abgeschlossen!")
             self.close()
 
 
@@ -130,8 +129,14 @@ class downloadThread(QThread):
             self.exit(0)            #Close thread
 
 
-        except Exception as e:
-            print(e)
+        except requests.exceptions.RequestException as e:
+            print("Error", e)
+            self.msgbox(e)
+            
+    def msgbox(self, message):
+        msg = QMessageBox(2, "Information", message, QMessageBox.Ok)
+        msg.exec()
+
 
 ####################################
 #Program entry
