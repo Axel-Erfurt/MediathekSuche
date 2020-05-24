@@ -47,7 +47,6 @@ class MyWindow(QMainWindow):
         self.viewer.setSortingEnabled(False)
         self.viewer.verticalHeader().setStretchLastSection(False)
         self.viewer.horizontalHeader().setStretchLastSection(True)
-        #self.viewer.horizontalHeader().sectionClicked.connect(self.sortTable)
 
         self.viewer.setColumnCount(7)
         self.viewer.setColumnWidth(0, 48)
@@ -64,7 +63,7 @@ class MyWindow(QMainWindow):
         self.viewer.selectionModel().selectionChanged.connect(self.getCellText)
         
         self.layout = QGridLayout()
-        self.layout.addWidget(self.viewer,0, 0, 1, 6)
+        self.layout.addWidget(self.viewer,0, 0, 1, 7)
 
         self.findfield = QLineEdit()
         self.fAction = QAction(QIcon.fromTheme("edit-clear"), "", triggered = self.findfieldAction)
@@ -106,6 +105,11 @@ class MyWindow(QMainWindow):
         self.lbl = QLabel("Info")
         self.layout.addWidget(self.lbl,1, 5)
 
+        self.chkbox = QCheckBox("nach Filmlänge sortieren")
+        self.layout.addWidget(self.chkbox,1, 6)
+        self.chkbox.setCheckState(0)
+        self.chkbox.stateChanged.connect(self.myQuery)
+        
         self.myWidget = QWidget()
         self.myWidget.setLayout(self.layout)
 
@@ -172,20 +176,19 @@ class MyWindow(QMainWindow):
 
             for b in range(len(self.titleList)):
                 self.idList.append(str(b))
-                    
+            self.viewer.setSortingEnabled(False)   
             for x in range(len(self.titleList)):
-                #print(f"{self.idList[x]}\t{self.chList[x]}\t{self.topicList[x]}\t{self.titleList[x]}\t{self.urlList[x]}")
                 self.viewer.insertRow(x)
                 self.viewer.setItem(x, 0, QTableWidgetItem(self.chList[x]))
                 self.viewer.setItem(x, 1, QTableWidgetItem(self.topicList[x]))
                 self.viewer.setItem(x, 2, QTableWidgetItem(self.titleList[x]))
+                self.viewer.setItem(x, 3, QTableWidgetItem(self.lengthList[x]))
                 self.viewer.setItem(x, 4, QTableWidgetItem(self.urlList[x]))
                 self.viewer.setItem(x, 5, QTableWidgetItem(self.urlKleinList[x]))
                 self.viewer.setItem(x, 6, QTableWidgetItem(self.beschreibungList[x]))
-                self.viewer.setItem(x, 3, QTableWidgetItem(self.lengthList[x]))
             for x in range(len(self.titleList)):
                 self.viewer.resizeRowToContents(x)
-        
+
         
     def makeQuery(self, channel, myquery):
         headers = {
@@ -195,11 +198,16 @@ class MyWindow(QMainWindow):
             'Content-Type': 'text/plain;charset=UTF-8',
             'Connection': 'keep-alive',
         }
-        
-        data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
-                "queries":[{"fields":["title", "topic", "description"],
-                "query":"" + myquery + ""},{"fields":["channel"],
-                "query":"" + channel + ""}]}
+        if self.chkbox.checkState() == 2:
+            data = {"future":"true", "size":"500", "sortBy":"duration", "sortOrder":"desc", \
+                    "queries":[{"fields":["title", "topic", "description"],
+                    "query":"" + myquery + ""},{"fields":["channel"],
+                    "query":"" + channel + ""}]}
+        else:
+            data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"asc", \
+                    "queries":[{"fields":["title", "topic", "description"],
+                    "query":"" + myquery + ""},{"fields":["channel"],
+                    "query":"" + channel + ""}]}            
         
         response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
         response_json = response.json()
