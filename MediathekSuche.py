@@ -8,7 +8,7 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import (QFileInfo, Qt, QSettings, QSize, QFile, QModelIndex, QObject, QEvent)
 from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QGridLayout, QPushButton, 
-                             QAbstractItemView, QAction, QLineEdit, QWidget, QLabel, 
+                             QAbstractItemView, QAction, QLineEdit, QWidget, QLabel, QApplication,
                              QComboBox, QMessageBox, QApplication,  QTableWidgetItem, QCheckBox)
 import MediathekPlayer
 import Downloader
@@ -108,6 +108,7 @@ class MyWindow(QMainWindow):
         self.chkbox = QCheckBox("nach Filmlänge sortieren")
         self.layout.addWidget(self.chkbox,1, 6)
         self.chkbox.setCheckState(0)
+        self.chkbox.setToolTip("Standard-Sortierung ist nach Erscheinungsdatum")
         self.chkbox.stateChanged.connect(self.myQuery)
         
         self.myWidget = QWidget()
@@ -124,6 +125,7 @@ class MyWindow(QMainWindow):
         self.player = MediathekPlayer.VideoPlayer('')
         self.player.hide()
         help_label = QLabel("<b>Wildcards:</b> <b>+</b> Titel, <b>#</b> Thema, <b>*</b> Beschreibung")
+        help_label.setToolTip("ohne Wildcard werden alle Felder durchsucht")
         help_label.setStyleSheet("font-size: 8pt; color: #1a2334;")
         self.statusBar().addPermanentWidget(help_label)
         self.statusBar().showMessage("Ready")
@@ -439,6 +441,10 @@ class MyWindow(QMainWindow):
             if not item == "":
                 filename = str(item.data())
             self.downloader.fname = filename + self.url[-4:]
+            self.downloader.fname = self.downloader.fname.replace(' (', '_').replace(') ', '_')\
+            .replace(')', '_').replace('/', '_')
+            if '_.' in self.downloader.fname:
+                self.downloader.fname = self.downloader.fname.replace('_.', '.')
             self.downloader.lbl.setText("speichern als: " + self.downloader.homepath + self.downloader.fname)
             self.downloader.move(self.x() + 2, self.y() + 28)
             self.downloader.show()
@@ -457,6 +463,7 @@ class MyWindow(QMainWindow):
             if not item == "":
                 name = item
                 self.url = str(item)
+                QApplication.clipboard().setText(self.url)
                 print(self.url)
             infotext = f"{self.chList[row]}: {self.topicList[row]} - {self.titleList[row]} \
                         ({self.chBox.text()}) Dauer: {self.lengthList[row]}"
