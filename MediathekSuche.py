@@ -1,16 +1,15 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-### © Axel Schneider 2020 ###
+### © Axel Schneider 2025 ###
 ### Credits: https://github.com/mediathekview/mediathekviewweb (API used) ###
 ### GNU General Public License v3.0 ###
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import (QFileInfo, Qt, QSettings, QSize, QFile, QModelIndex, QObject, QEvent)
+from PyQt5.QtCore import (QFileInfo, Qt, QSettings, QUrl, QProcess)
 from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QGridLayout, QPushButton, 
-                             QAbstractItemView, QAction, QLineEdit, QWidget, QLabel, QApplication,
-                             QComboBox, QMessageBox, QApplication,  QTableWidgetItem, QCheckBox)
-import MediathekPlayer
+                             QAbstractItemView, QAction, QLineEdit, QWidget, QLabel, 
+                             QComboBox, QMessageBox, QApplication,  QTableWidgetItem)
 import Downloader
 import time
 import requests
@@ -24,6 +23,7 @@ class MyWindow(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.settings = QSettings('Axel Schneider', self.objectName())
         self.viewer = QTableWidget()
+        self.process = QProcess()
         
         
         self.horizontalHeader = self.viewer.horizontalHeader()
@@ -44,9 +44,10 @@ class MyWindow(QMainWindow):
         self.fname = ""
         self.viewer.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.viewer.SelectionMode(QAbstractItemView.SingleSelection)
-        self.viewer.setSortingEnabled(False)
+        self.viewer.setSortingEnabled(True)
         self.viewer.verticalHeader().setStretchLastSection(False)
         self.viewer.horizontalHeader().setStretchLastSection(True)
+        #self.viewer.horizontalHeader().sectionClicked.connect(self.sortTable)
 
         self.viewer.setColumnCount(7)
         self.viewer.setColumnWidth(0, 48)
@@ -63,7 +64,7 @@ class MyWindow(QMainWindow):
         self.viewer.selectionModel().selectionChanged.connect(self.getCellText)
         
         self.layout = QGridLayout()
-        self.layout.addWidget(self.viewer,0, 0, 1, 7)
+        self.layout.addWidget(self.viewer,0, 0, 1, 6)
 
         self.findfield = QLineEdit()
         self.fAction = QAction(QIcon.fromTheme("edit-clear"), "", triggered = self.findfieldAction)
@@ -105,12 +106,6 @@ class MyWindow(QMainWindow):
         self.lbl = QLabel("Info")
         self.layout.addWidget(self.lbl,1, 5)
 
-        self.chkbox = QCheckBox("nach Filmlänge sortieren")
-        self.layout.addWidget(self.chkbox,1, 6)
-        self.chkbox.setCheckState(0)
-        self.chkbox.setToolTip("Standard-Sortierung ist nach Erscheinungsdatum")
-        self.chkbox.stateChanged.connect(self.myQuery)
-        
         self.myWidget = QWidget()
         self.myWidget.setLayout(self.layout)
 
@@ -122,11 +117,7 @@ class MyWindow(QMainWindow):
         self.readSettings()
         self.msg("Ready")
         self.findfield.setFocus()
-        self.player = MediathekPlayer.VideoPlayer('')
-        self.player.hide()
-        wildcards = "Wildcards:    + Titel    # Thema    * Beschreibung\n '<xx Suchbegriff' kleiner als xx Minuten    '>xx Suchbegriff' grösser als xx Minuten "
-        help_label = QLabel(wildcards)
-        help_label.setToolTip("ohne Wildcard werden alle Felder durchsucht")
+        help_label = QLabel("<b>Wildcards:</b> <b>+</b> Titel, <b>#</b> Thema, <b>*</b> Beschreibung")
         help_label.setStyleSheet("font-size: 8pt; color: #1a2334;")
         self.statusBar().addPermanentWidget(help_label)
         self.statusBar().showMessage("Ready")
@@ -172,14 +163,6 @@ class MyWindow(QMainWindow):
                 ### nur Titel
                 for ch in channels:
                     r = self.makeQueryTitle(ch, self.findfield.text()[1:])
-            elif self.findfield.text().startswith(">"):
-                ### Zeit grösser
-                for ch in channels:
-                    r = self.makeQueryBigger(ch, self.findfield.text())
-            elif self.findfield.text().startswith("<"):
-                ### Zeit kleiner
-                for ch in channels:
-                    r = self.makeQuerySmaller(ch, self.findfield.text())
             else:
                 ### alle Felder
                 for ch in channels:
@@ -187,19 +170,19 @@ class MyWindow(QMainWindow):
 
             for b in range(len(self.titleList)):
                 self.idList.append(str(b))
-            self.viewer.setSortingEnabled(False)   
+                    
             for x in range(len(self.titleList)):
                 self.viewer.insertRow(x)
                 self.viewer.setItem(x, 0, QTableWidgetItem(self.chList[x]))
                 self.viewer.setItem(x, 1, QTableWidgetItem(self.topicList[x]))
                 self.viewer.setItem(x, 2, QTableWidgetItem(self.titleList[x]))
-                self.viewer.setItem(x, 3, QTableWidgetItem(self.lengthList[x]))
                 self.viewer.setItem(x, 4, QTableWidgetItem(self.urlList[x]))
                 self.viewer.setItem(x, 5, QTableWidgetItem(self.urlKleinList[x]))
                 self.viewer.setItem(x, 6, QTableWidgetItem(self.beschreibungList[x]))
+                self.viewer.setItem(x, 3, QTableWidgetItem(self.lengthList[x]))
             for x in range(len(self.titleList)):
                 self.viewer.resizeRowToContents(x)
-
+        
         
     def makeQuery(self, channel, myquery):
         headers = {
@@ -209,16 +192,11 @@ class MyWindow(QMainWindow):
             'Content-Type': 'text/plain;charset=UTF-8',
             'Connection': 'keep-alive',
         }
-        if self.chkbox.checkState() == 2:
-            data = {"future":"true", "size":"500", "sortBy":"duration", "sortOrder":"desc", \
-                    "queries":[{"fields":["title", "topic", "description"],
-                    "query":"" + myquery + ""},{"fields":["channel"],
-                    "query":"" + channel + ""}]}
-        else:
-            data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"asc", \
-                    "queries":[{"fields":["title", "topic", "description"],
-                    "query":"" + myquery + ""},{"fields":["channel"],
-                    "query":"" + channel + ""}]}            
+        
+        data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"desc", \
+                "queries":[{"fields":["title", "topic", "description"],
+                "query":"" + myquery + ""},{"fields":["channel"],
+                "query":"" + channel + ""}]}
         
         response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
         response_json = response.json()
@@ -438,140 +416,6 @@ class MyWindow(QMainWindow):
         print(count, "Beiträge gefunden")
         self.lbl.setText(f"{count} Beiträge gefunden")
         
-#######################################################################
-    def makeQueryBigger(self, channel, myquery):
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
-            'Accept': '*/*',
-            'Accept-Language': 'de-DE,en;q=0.5',
-            'Content-Type': 'text/plain;charset=UTF-8',
-            'Connection': 'keep-alive',
-        }
-        if self.chkbox.checkState() == 2:
-            data = {"future":"true", "size":"500", "sortBy":"duration", "sortOrder":"desc", \
-                    "queries":[{"fields":["duration"],
-                    "query":"" + myquery[1:].partition(" ")[2] + ""},{"fields":["channel"],
-                    "query":"" + channel + ""}]}
-        else:
-            data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"asc", \
-                    "queries":[{"fields":["title", "topic", "description"],
-                    "query":"" + myquery[1:].partition(" ")[2] + ""},{"fields":["channel"],
-                    "query":"" + channel + ""}]}            
-        
-        response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
-        response_json = response.json()
-        count = int(response_json['result']['queryInfo']['resultCount'])
-        for x in range(count):
-            topic = response_json['result']['results'][x]['topic']
-            title = response_json['result']['results'][x]['title']
-            url = response_json['result']['results'][x]['url_video']
-            url_klein = response_json['result']['results'][x]['url_video_low']
-            beschreibung = response_json['result']['results'][x]['description']
-            l = response_json['result']['results'][x]['duration']
-            if not l == "":
-                length = time.strftime('%H:%M:%S', time.gmtime(l))
-                mydur = myquery[1:].partition(" ")[0]
-                hour = time.strftime('%H', time.gmtime(l))
-                minute = time.strftime('%M', time.gmtime(l))
-                dur = int(hour) * 60 + int(minute)
-                if dur > int(mydur) - 1:
-                    self.lengthList.append(length)
-                    ch = response_json['result']['results'][x]['channel']
-                    if not ch == "":
-                        self.chList.append(ch)
-                    else:
-                        self.chList.append("")
-                    if not title == "":    
-                        self.titleList.append(title)
-                    else:
-                        self.titleList.append("")
-                    if not topic == "":
-                        self.topicList.append(topic)
-                    else:
-                        self.topicList.append("")
-                    if not url == "":
-                        self.urlList.append(url)
-                    else:
-                        self.urlList.append("")
-                    if not url_klein == "":
-                        self.urlKleinList.append(url_klein)
-                    else:
-                        self.urlKleinList.append("")
-                    if not beschreibung == "":
-                        self.beschreibungList.append(beschreibung)
-                    else:
-                        self.beschreibungList.append("")
-            
-        print(count, "Beiträge gefunden")
-        self.lbl.setText(f"{count} Beiträge gefunden")
-#######################################################################
-    def makeQuerySmaller(self, channel, myquery):
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0',
-            'Accept': '*/*',
-            'Accept-Language': 'de-DE,en;q=0.5',
-            'Content-Type': 'text/plain;charset=UTF-8',
-            'Connection': 'keep-alive',
-        }
-        if self.chkbox.checkState() == 2:
-            data = {"future":"true", "size":"500", "sortBy":"duration", "sortOrder":"desc", \
-                    "queries":[{"fields":["duration"],
-                    "query":"" + myquery[1:].partition(" ")[2] + ""},{"fields":["channel"],
-                    "query":"" + channel + ""}]}
-        else:
-            data = {"future":"true", "size":"500", "sortBy":"timestamp", "sortOrder":"asc", \
-                    "queries":[{"fields":["title", "topic", "description"],
-                    "query":"" + myquery[1:].partition(" ")[2] + ""},{"fields":["channel"],
-                    "query":"" + channel + ""}]}            
-        
-        response = requests.post('https://mediathekviewweb.de/api/query', headers=headers, json=data)
-        response_json = response.json()
-        count = int(response_json['result']['queryInfo']['resultCount'])
-        for x in range(count):
-            topic = response_json['result']['results'][x]['topic']
-            title = response_json['result']['results'][x]['title']
-            url = response_json['result']['results'][x]['url_video']
-            url_klein = response_json['result']['results'][x]['url_video_low']
-            beschreibung = response_json['result']['results'][x]['description']
-            l = response_json['result']['results'][x]['duration']
-            if not l == "":
-                length = time.strftime('%H:%M:%S', time.gmtime(l))
-                mydur = myquery[1:].partition(" ")[0]
-                hour = time.strftime('%H', time.gmtime(l))
-                minute = time.strftime('%M', time.gmtime(l))
-                dur = int(hour) * 60 + int(minute)
-                if dur < int(mydur):
-                    self.lengthList.append(length)
-                    ch = response_json['result']['results'][x]['channel']
-                    if not ch == "":
-                        self.chList.append(ch)
-                    else:
-                        self.chList.append("")
-                    if not title == "":    
-                        self.titleList.append(title)
-                    else:
-                        self.titleList.append("")
-                    if not topic == "":
-                        self.topicList.append(topic)
-                    else:
-                        self.topicList.append("")
-                    if not url == "":
-                        self.urlList.append(url)
-                    else:
-                        self.urlList.append("")
-                    if not url_klein == "":
-                        self.urlKleinList.append(url_klein)
-                    else:
-                        self.urlKleinList.append("")
-                    if not beschreibung == "":
-                        self.beschreibungList.append(beschreibung)
-                    else:
-                        self.beschreibungList.append("")
-            
-        print(count, "Beiträge gefunden")
-        self.lbl.setText(f"{count} Beiträge gefunden")
-#######################################################################
-
     def findfieldAction(self):
         self.findfield.setText("")
         
@@ -593,8 +437,7 @@ class MyWindow(QMainWindow):
             self.downloader.show()
         else:
             print("keine URL")
-            self.msg("keine URL")
-        
+            self.msg("keine URL")        
         
     def getCellText(self):
         if self.viewer.selectionModel().hasSelection():
@@ -606,12 +449,20 @@ class MyWindow(QMainWindow):
             if not item == "":
                 name = item
                 self.url = str(item)
-                QApplication.clipboard().setText(self.url)
                 print(self.url)
             infotext = f"{self.chList[row]}: {self.topicList[row]} - {self.titleList[row]} \
                         ({self.chBox.text()}) Dauer: {self.lengthList[row]}"
             self.msg(infotext)
             self.fname = str(self.viewer.selectedIndexes()[1].data())
+            
+    def show_msg(self, message):
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("Information")
+        dlg.setText(message)
+        button = dlg.exec()
+
+        if button == QMessageBox.StandardButton.Ok:
+            print("MessageBox closed")
 
         
     def playVideo(self):
@@ -625,16 +476,18 @@ class MyWindow(QMainWindow):
                 print("play SD")
             if not item == "":
                 self.url = item
+                print(self.url)
                 if not self.url == "":
                     print("url =", self.url)
-                    self.player.show()
-                    self.player.playMyURL(self.url)
+                    self.process.startDetached("celluloid", [self.url]) # player hier ändern
                 else:
                     print("keine URL vorhanden")
                     self.msg("keine URL vorhanden")
             else:
+                self.msg("keine URL vorhanden")
                 print("keine URL vorhanden")
         else:
+            self.msg("keine URL vorhanden")
             print("keine URL vorhanden")
 
     def selectedRow(self):
@@ -644,7 +497,6 @@ class MyWindow(QMainWindow):
 
     def closeEvent(self, e):
         self.writeSettings()
-        self.player.close()
         e.accept()
 
     def readSettings(self):
@@ -732,6 +584,82 @@ def stylesheet(self):
             height: 22px;
              background: qlineargradient(y1: 0, y2: 1,
                                          stop: 0 #d3d7cf, stop: 1.0 #babdb6);
+}
+    """
+    
+def stylesheet_dark(self):
+        return """
+        QTableWidget
+        {
+            border: 1px solid grey;
+            border-radius: 0px;
+            font-size: 8pt;
+            background-color: #222222;
+            selection-background-color: #62a0ea;
+            selection-color: #ffffff;
+            color: #ddd; 
+        }
+        QHeaderView
+        {
+        font-size: 9pt;
+        background-color:#241f31;
+        color: #ddd; 
+        }
+
+        QHeaderView::section
+        {background-color:#222;
+        color: #ddd; 
+        }
+        QTableCornerButton::section 
+        {
+        background-color:#222; 
+        }
+
+        QStatusBar
+        {
+            font-size: 8pt;
+            color: #d2d2d2;
+        }
+
+        QPushButton
+        {
+            height: 20px;
+            font-size: 9pt;   
+            background: #222222;
+            color: #dddddd;
+        }
+        QPushButton:hover
+        {   
+            color: black;
+            background: #729fcf;           
+        }
+
+        QComboBox
+        {
+            height: 22px;
+            font-size: 9pt;
+            background: #222222;
+            color: #dddddd;
+        }
+        QComboBox:hover
+        {   
+            color: grey;
+            background: #241f31;           
+        }
+        QComboBox:item:hover
+        {   
+            color: grey;
+            background: #204a87;           
+        }       
+        QMainWindow
+        {
+         background: #222;
+        }
+        QLineEdit
+        {   
+            height: 22px;
+             background: #222;
+             color: #dddddd;
 }
     """
 ###################################     
